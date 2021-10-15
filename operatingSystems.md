@@ -96,7 +96,7 @@ int main(){
 - A thread object is joinable if it represents a thread of execution.
 - thread objects cannot be copied but can be moved using equal operator 
 - detach : Detaches the thread represented by the object from the calling thread, allowing them to execute independently from each other. Both threads continue without blocking nor synchronizing in any way. Note that when either one ends execution, its resources are released. After a call to this function, the thread object becomes non-joinable and can be destroyed safely.
-- we saw that if u don't join threads in the end then it throws error but if u just detach the thread then it won't throw error `thread obj1(foo, 10).detach()` or you could seperately detach thread `obj.detach()`
+- we saw that if u don't join threads in the end then it throws error but if u just detach the thread then it won't throw error  `obj.detach()`
 
 ---
 - threads have their own registers and stack, stack pointer everything else is shared such as heap, address space , data, code 
@@ -109,3 +109,52 @@ int main(){
 - By default a thread runs in joinable mode. Joinable thread will not release any resource even after the end of thread function until it is joined
 - A Detached thread automatically releases it allocated resources on exit. No other thread needs to join it.
 - you can get the number of possible hardware thread contexts using `obj.hardware_concurrency()`
+
+### LRU cache
+
+- use list stl (doubly linked list) which will contain all the pages as whatever struct they are 
+- also we have a hash map which maps each page number to an iterator of the list
+- when we look for a key and an interator exist we return that page, delete that page, insert it at the front, update hashmap
+- when we don't find, we remove from the last and add new one in front and also update the hash map for both things
+
+## Mutex 
+
+- mutex does not support recursive lock , `recursive_mutex` does 
+- A recursive mutex is a lockable object, just like mutex, but allows the same thread to acquire multiple levels of ownership over the mutex object.
+- use of recursive mutex : suppose you have a recursive function and want to lock a section of code 
+- mutex has three methods, 1) lock 2) unlock 3) try_lock (returns true if able to lock)
+
+```
+#include <bits/stdc++.h>
+#include <thread>
+#include <mutex>
+using namespace std;
+
+mutex mt;
+
+void printer(char c){
+  mt.lock();
+  for(int j = 0; j < 10; ++j){
+    int temp = 1000;
+    while(temp--);
+    for(int i = 0; i < 10; ++i) cout << c;
+    cout << "\n";  
+  }
+  mt.unlock();
+}
+
+int main(){
+  thread t1(printer, 'a');
+  thread t2(printer, 'b');
+  t1.join();
+  t2.join();
+}
+```
+
+## Semaphore (counting semaphore) 
+
+- counting_semaphore is not assignable 
+- in cpp20 we have counting_semaphore in `semaphore` header 
+- it has couple of functions `release`, `acquire`, `try_acquire`, `try_acquire_for`, `try_acquire_until` 
+- `counting_semaphore<5> prepareSignal(5);` (the template argument being the max value and the arg being the current state) 
+- if u are not in c++20 you could write [your own counting semaphore](https://stackoverflow.com/questions/4792449/c0x-has-no-semaphores-how-to-synchronize-threads) 
